@@ -1,23 +1,88 @@
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>http://GitHuanLee.github.io</id>
+    <id>http://blog.huanlee.cn</id>
     <title>Lee</title>
     <subtitle>生活笔记</subtitle>
-    <icon>http://githuanlee.github.io/images/favicon.ico</icon>
-    <link href="http://GitHuanLee.github.io" />
+    <icon>http://blog.huanlee.cn/images/favicon.ico</icon>
+    <link href="http://blog.huanlee.cn" />
     <author>
       <name>Lee</name>
     </author>
-    <updated>2020-09-17T08:29:20.070Z</updated>
+    <updated>2020-09-21T08:40:40.000Z</updated>
     <category term="JAVA" />
     <category term="Lee" />
     <category term="Java" />
     <category term="Spring Boot" />
     <category term="Spring" />
     <entry>
-        <id>http://githuanlee.github.io/2020/09/17/hello-world/</id>
+        <id>http://blog.huanlee.cn/computer-science/blog/%E9%80%9A%E8%BF%87Hexo%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</id>
+        <title>通过Hexo搭建个人博客</title>
+        <link rel="alternate" href="http://blog.huanlee.cn/computer-science/blog/%E9%80%9A%E8%BF%87Hexo%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/"/>
+        <content type="html">&lt;div class=&#34;note info&#34;&gt;
+&lt;p&gt;以下为自己通过 hexo 搭建个人博客的笔记，记录自己的采坑历程，参考 hexo 官方文档和百度资料。&lt;br /&gt;
+&lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9oZXhvLmlvLw==&#34;&gt;https://hexo.io/&lt;/span&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;h1 id=&#34;什么是hexo&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#什么是hexo&#34;&gt;#&lt;/a&gt; 什么是 hexo？&lt;/h1&gt;
+&lt;p&gt;Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 Markdown（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。&lt;/p&gt;
+&lt;h1 id=&#34;安装&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#安装&#34;&gt;#&lt;/a&gt; 安装&lt;/h1&gt;
+&lt;h2 id=&#34;安装前准备&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#安装前准备&#34;&gt;#&lt;/a&gt; 安装前准备&lt;/h2&gt;
+&lt;p&gt;安装 Hexo 需要保证当前环境有以下应用程序：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9naXQtc2NtLmNvbS8=&#34;&gt;Git&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9ub2RlanMub3JnL2VuLw==&#34;&gt;Node.js&lt;/span&gt; (Node.js 版本需不低于 10.13，建议使用 Node.js 12.0 及以上版本)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;安装git&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#安装git&#34;&gt;#&lt;/a&gt; 安装 Git&lt;/h3&gt;
+&lt;p&gt;因为我是用的是个人的 Centos 服务器，直接通过 yum 命令安装：&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token comment&#34;&gt;#安装 git&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;2&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;yum &lt;span class=&#34;token function&#34;&gt;install&lt;/span&gt; -y &lt;span class=&#34;token function&#34;&gt;git&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;3&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token comment&#34;&gt;#查看版本&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;4&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;git&lt;/span&gt; version&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;5&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;git&lt;/span&gt; version &lt;span class=&#34;token number&#34;&gt;1.8&lt;/span&gt;.3.1&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;h3 id=&#34;安装nodejs&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#安装nodejs&#34;&gt;#&lt;/a&gt; 安装 Node.js&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;从官网下下载最新的 nodejs，&lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9ub2RlanMub3JnL2VuL2Rvd25sb2FkLw==&#34;&gt;https://nodejs.org/en/download/&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;上传安装包到服务器，并解压。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;tar&lt;/span&gt; -xvf node-v12.18.4-linux-x64.tar.xz&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;移动文件夹并且改名&lt;/li&gt;
+&lt;/ol&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token builtin class-name&#34;&gt;cd&lt;/span&gt; /usr/local/&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;2&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;mv&lt;/span&gt; /home/node-v12.18.4-linux-x64 &lt;span class=&#34;token builtin class-name&#34;&gt;.&lt;/span&gt; //后面的.表示移动到当前目录&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;3&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;mv&lt;/span&gt; node-v12.18.4-linux-x64/ nodejs&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;ol start=&#34;4&#34;&gt;
+&lt;li&gt;让 npm 和 node 命令全局生效&lt;/li&gt;
+&lt;/ol&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;ln&lt;/span&gt; -s /usr/local/nodejs/bin/npm /usr/local/bin/&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;2&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;ln&lt;/span&gt; -s /usr/local/nodejs/bin/node /usr/local/bin/&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;ol start=&#34;5&#34;&gt;
+&lt;li&gt;查看 Node.js 是否安装成功&lt;/li&gt;
+&lt;/ol&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;node -v&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;2&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;v12.18.4&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;3&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;npm&lt;/span&gt; -v&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;4&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token number&#34;&gt;6.14&lt;/span&gt;.6&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;h2 id=&#34;安装hexo&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#安装hexo&#34;&gt;#&lt;/a&gt; 安装 Hexo&lt;/h2&gt;
+&lt;p&gt;所有必备的应用程序安装完成后，即可使用 npm 安装 Hexo。&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;npm&lt;/span&gt; &lt;span class=&#34;token function&#34;&gt;install&lt;/span&gt; -g hexo-cli&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;h3 id=&#34;遇到问题&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#遇到问题&#34;&gt;#&lt;/a&gt; 遇到问题&lt;/h3&gt;
+&lt;p&gt;这里安装完成后，执行会提示如下错误，通过添加环境变量或者添加链接解决&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;hexo init &lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;2&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;-bash: hexo: 未找到命令&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;p&gt;添加链接解决方式：&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;ln&lt;/span&gt; -s /node_modules/.bin/hexo /usr/local/bin/&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;h1 id=&#34;初始化&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#初始化&#34;&gt;#&lt;/a&gt; 初始化&lt;/h1&gt;
+&lt;p&gt;Hexo 安装完成后通过初始化命令构建一个 hexo 项目。&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;hexo init&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;p&gt;初始化完成后，通过预览命令：&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;hexo s&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;p&gt;发布一个本地博客服务，在网页访问 ip + 默认端口 &lt;code&gt;ip:4000&lt;/code&gt;  就能看到效果了。&lt;/p&gt;
+&lt;h1 id=&#34;创建新文章&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#创建新文章&#34;&gt;#&lt;/a&gt; 创建新文章&lt;/h1&gt;
+&lt;p&gt;博客仅仅是能看到还没有用，我们需要发布自己的内容上去，那么通过命令：&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token comment&#34;&gt;# [layout] 为布局，可选项为 `post`、`page`、`draft`，这将决定文章所在文件路径。&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;2&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token comment&#34;&gt;# &amp;lt;title&gt; 为文章标题&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;3&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token comment&#34;&gt;# 如 hexo new post 新的博客&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;4&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;hexo new &lt;span class=&#34;token punctuation&#34;&gt;[&lt;/span&gt;layout&lt;span class=&#34;token punctuation&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;token operator&#34;&gt;&amp;lt;&lt;/span&gt;title&lt;span class=&#34;token operator&#34;&gt;&gt;&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;p&gt;执行命令后，会在布局路径下生成 &lt;code&gt;[文章标题].md&lt;/code&gt;  的文件，填充文件内容就可以了。&lt;/p&gt;
+&lt;h1 id=&#34;部署&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#部署&#34;&gt;#&lt;/a&gt; 部署&lt;/h1&gt;
+&lt;p&gt;新写了一篇博客后，需要发布到网络上分享给自己的朋友，虽然通过前面的本地预览命令 &lt;code&gt;hexo s&lt;/code&gt;  也能达到效果，但是我这里使用 &lt;code&gt;nginx&lt;/code&gt;  发布：&lt;br /&gt;
+首先我们需要把刚写的博客编译成网页，通过命令：&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;hexo g&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;p&gt;编译完成后，所有的网页文件都在根目录下的 &lt;code&gt;public&lt;/code&gt;  文件夹中，那么我们只需要将 &lt;code&gt;nginx&lt;/code&gt;  配置中静态文件地址的路径指向 &lt;code&gt;&amp;lt;root&amp;gt;/public/&lt;/code&gt;  就可以了。&lt;br /&gt;
+然后直接访问 &lt;code&gt;nginx&lt;/code&gt;  地址就能看到我们新发布的博客了。&lt;/p&gt;
+&lt;h1 id=&#34;更换主题&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#更换主题&#34;&gt;#&lt;/a&gt; 更换主题&lt;/h1&gt;
+&lt;p&gt;有了自己的博客肯定想要他变得和别人的不一样，我们可以通过更换主题的方式来装修自己的博客，让它变得与众不同。&lt;br /&gt;
+我们可以在 &lt;code&gt;Hexo&lt;/code&gt;  的&lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9oZXhvLmlvL3RoZW1lcy8=&#34;&gt;主题列表&lt;/span&gt;中选择一个自己喜欢的主题。&lt;br /&gt;
+以博主使用的主题： &lt;code&gt;Shake&lt;/code&gt;  为例：&lt;/p&gt;
+&lt;figure class=&#34;highlight bash&#34;&gt;&lt;figcaption data-lang=&#34;bash&#34;&gt;&lt;/figcaption&gt;&lt;table&gt;&lt;tr&gt;&lt;td data-num=&#34;1&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token comment&#34;&gt;# cd your-blog&lt;/span&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td data-num=&#34;2&#34;&gt;&lt;/td&gt;&lt;td data-command=&#34;[root@localhost] $&#34;&gt;&lt;/td&gt;&lt;td&gt;&lt;pre&gt;&lt;span class=&#34;token function&#34;&gt;git&lt;/span&gt; clone https://github.com/amehime/hexo-theme-shoka.git ./themes/shoka&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;p&gt;在博客根目录下执行上面的代码拉取主题到本地 &lt;code&gt;themes&lt;/code&gt;  文件夹中，主题文件的保存地址应该为 &lt;code&gt;&amp;lt;root&amp;gt;/themes/shoka&lt;/code&gt; ，然后修改根目录下 &lt;code&gt;_config.yml&lt;/code&gt; 。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-YMAL&#34;&gt;theme: shoka
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;表示使用本地主题 &lt;code&gt;shoka&lt;/code&gt; , 然后执行上文中的编译部署看看新主题的效果吧。&lt;/p&gt;
+&lt;h1 id=&#34;更多&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#更多&#34;&gt;#&lt;/a&gt; 更多&lt;/h1&gt;
+&lt;p&gt;当然， &lt;code&gt;Hexo&lt;/code&gt;  的功能不仅仅于此，还有很多的功能需要我们去探索。&lt;/p&gt;
+</content>
+        <category term="计算机科学" scheme="http://blog.huanlee.cn/categories/computer-science/" />
+        <category term="个人博客" scheme="http://blog.huanlee.cn/categories/computer-science/blog/" />
+        <updated>2020-09-21T08:40:40.000Z</updated>
+    </entry>
+    <entry>
+        <id>http://blog.huanlee.cn/computer-science/blog/hello-world/</id>
         <title>Hello World</title>
-        <link rel="alternate" href="http://githuanlee.github.io/2020/09/17/hello-world/"/>
+        <link rel="alternate" href="http://blog.huanlee.cn/computer-science/blog/hello-world/"/>
         <content type="html">&lt;p&gt;Welcome to &lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9oZXhvLmlvLw==&#34;&gt;Hexo&lt;/span&gt;! This is your very first post. Check &lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9oZXhvLmlvL2RvY3Mv&#34;&gt;documentation&lt;/span&gt; for more info. If you get any problems when using Hexo, you can find the answer in &lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9oZXhvLmlvL2RvY3MvdHJvdWJsZXNob290aW5nLmh0bWw=&#34;&gt;troubleshooting&lt;/span&gt; or you can ask me on &lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvL2lzc3Vlcw==&#34;&gt;GitHub&lt;/span&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;quick-start&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#quick-start&#34;&gt;#&lt;/a&gt; Quick Start&lt;/h2&gt;
 &lt;h3 id=&#34;create-a-new-post&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#create-a-new-post&#34;&gt;#&lt;/a&gt; Create a new post&lt;/h3&gt;
@@ -37,6 +102,8 @@
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;More info: &lt;span class=&#34;exturl&#34; data-url=&#34;aHR0cHM6Ly9oZXhvLmlvL2RvY3Mvb25lLWNvbW1hbmQtZGVwbG95bWVudC5odG1s&#34;&gt;Deployment&lt;/span&gt;&lt;/p&gt;
 </content>
-        <updated>2020-09-17T08:29:20.070Z</updated>
+        <category term="计算机科学" scheme="http://blog.huanlee.cn/categories/computer-science/" />
+        <category term="个人博客" scheme="http://blog.huanlee.cn/categories/computer-science/blog/" />
+        <updated>2020-09-21T08:02:14.207Z</updated>
     </entry>
 </feed>
