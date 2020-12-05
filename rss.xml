@@ -10,13 +10,359 @@
         </author>
         <description>见习码农</description>
         <language>zh-CN</language>
-        <pubDate>Fri, 16 Oct 2020 16:04:30 +0800</pubDate>
-        <lastBuildDate>Fri, 16 Oct 2020 16:04:30 +0800</lastBuildDate>
+        <pubDate>Sat, 05 Dec 2020 17:24:40 +0800</pubDate>
+        <lastBuildDate>Sat, 05 Dec 2020 17:24:40 +0800</lastBuildDate>
         <category term="JAVA" />
         <category term="Lee" />
         <category term="Java" />
         <category term="Spring Boot" />
         <category term="Spring" />
+        <item>
+            <guid isPermalink="true">http://blog.huanlee.cn/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/</guid>
+            <title>SpringBoot网关对外接口签名</title>
+            <link>http://blog.huanlee.cn/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/</link>
+            <category term="计算机科学" scheme="http://blog.huanlee.cn/categories/computer-science/" />
+            <category term="Java" scheme="http://blog.huanlee.cn/categories/computer-science/java/" />
+            <pubDate>Sat, 05 Dec 2020 17:24:40 +0800</pubDate>
+            <description><![CDATA[ &lt;div class=&#34;note info&#34;&gt;
+&lt;p&gt;在需要提供对外接口时，通过一系列验证方式保证安全性&lt;/p&gt;
+&lt;/div&gt;
+&lt;h1 id=&#34;接口签名的作用&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#接口签名的作用&#34;&gt;#&lt;/a&gt; 接口签名的作用&lt;/h1&gt;
+&lt;pre&gt;&lt;code&gt;当我们产品在遇到需要提供对外接口的情况，我们想要保证接口的安全性，既能够保证数据的安全，又能防止被人暴力破坏，我们可以选择在对外接口上增加验证方式，来保证对外接口的安全性。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id=&#34;接口签名的思路&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#接口签名的思路&#34;&gt;#&lt;/a&gt; 接口签名的思路&lt;/h1&gt;
+&lt;pre&gt;&lt;code&gt;传统对内接口，我们的验证方式为：对用户身份信息进行验证，（即：cookie中包含服务端sessionID或Token令牌），那么对于公开的对外接口，我们也可以用大致相同的思路，首先接口调用方，需要获取我们平台颁发给他的`appKey`和`appSecret`（可以理解为：用户名和密码），然后为了防止直接使用密钥传输会被抓包窃取数据，那么我们需要规定一种双方都能通过密钥得出的对称加密方式，这样只需要每次在接口上传递加密后的密码串，就能保证安全性。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id=&#34;接口签名的代码实现&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#接口签名的代码实现&#34;&gt;#&lt;/a&gt; 接口签名的代码实现&lt;/h1&gt;
+&lt;h2 id=&#34;首先我们需要一个存储用户信息的表&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#首先我们需要一个存储用户信息的表&#34;&gt;#&lt;/a&gt; 首先我们需要一个存储用户信息的表&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class RestApiAuth implements Serializable &amp;#123;
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * app key
+     */
+    private String appkey;
+
+    /**
+     * app secret
+     */
+    private String appsecret;
+
+    private Date createTime;
+
+    private Date updateTime;
+    /**
+     * 是否启用(1:是 0:否)
+     */
+    private Integer enabled;
+    /**
+     * 备注
+     */
+    private String remark;
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;对外接口用户信息增删查改&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#对外接口用户信息增删查改&#34;&gt;#&lt;/a&gt; 对外接口用户信息增删查改&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public interface IRestApiAuthService extends IService&amp;lt;RestApiAuth&amp;gt; &amp;#123;
+
+    public RestApiAuth getRestApiAuthByAppkey(String appkey);
+&amp;#125;
+
+@Service
+public class RestApiAuthServiceImpl extends ServiceImpl&amp;lt;RestApiAuthMapper, RestApiAuth&amp;gt; implements IRestApiAuthService &amp;#123;
+
+    @Override
+    public RestApiAuth getRestApiAuthByAppkey(String appkey) &amp;#123;
+        QueryWrapper&amp;lt;RestApiAuth&amp;gt; wrapper = new QueryWrapper&amp;lt;RestApiAuth&amp;gt;()
+                .eq(&amp;quot;appkey&amp;quot;, appkey);
+        return super.getOne(wrapper);
+    &amp;#125;
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;加密签名规则&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#加密签名规则&#34;&gt;#&lt;/a&gt; 加密签名规则&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;那么我们需要规定，在所有对外接口中，需要在http请求的头部信息中包含签名验证参数。我们定义4个必传参数为：
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ol&gt;
+&lt;li&gt;appkey：颁发给用户的 appKey&lt;/li&gt;
+&lt;li&gt;noncestr：随机字符串&lt;/li&gt;
+&lt;li&gt;timestamp：发起请求时间秒数&lt;/li&gt;
+&lt;li&gt;sign：参数内容签名结果，不参与签名。但需要发送给接口&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;并且提供签名的工具类供调用方使用&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#并且提供签名的工具类供调用方使用&#34;&gt;#&lt;/a&gt; 并且提供签名的工具类，供调用方使用：&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.util.Iterator;
+import java.util.TreeMap;
+public class SignUtil &amp;#123;
+
+    public static boolean verifySignature(String signature, TreeMap&amp;lt;String, String&amp;gt; map) &amp;#123;
+        if (map == null || StringUtils.isEmpty(signature)) &amp;#123;
+            return false;
+        &amp;#125;
+        String data = getParamStringData(map);
+        String paramsSign = null;
+        try &amp;#123;
+            paramsSign = DigestUtils.md5Hex(data.getBytes(&amp;quot;utf-8&amp;quot;));
+//            log.info(&amp;quot;-----------------》调用前日志签名&amp;quot;+paramsSign);
+        &amp;#125; catch (UnsupportedEncodingException e) &amp;#123;
+            throw new RuntimeException(e);
+        &amp;#125;
+        return StringUtils.isNotBlank(paramsSign) &amp;amp;&amp;amp; paramsSign.equals(signature);
+    &amp;#125;
+
+    public static String getParamStringData(TreeMap&amp;lt;String, String&amp;gt; map) &amp;#123;
+        StringBuilder sb = new StringBuilder();
+        Iterator&amp;lt;String&amp;gt; iterator = map.keySet().iterator();
+        while (iterator.hasNext()) &amp;#123;
+            String key = iterator.next();
+            String value = map.get(key);
+            sb.append(key).append(&amp;quot;=&amp;quot;).append(value).append(&amp;quot;&amp;amp;&amp;quot;);
+        &amp;#125;
+        if (sb.length() &amp;gt;= 1) &amp;#123;
+            sb = sb.deleteCharAt(sb.length() - 1);
+        &amp;#125;
+        return sb.toString();
+    &amp;#125;
+
+    public static String generateSign(String appkey, String appsecret, String timestamp, String nonce) &amp;#123;
+        TreeMap&amp;lt;String, String&amp;gt; map = new TreeMap&amp;lt;&amp;gt;();
+        map.put(&amp;quot;appkey&amp;quot;, appkey);
+        map.put(&amp;quot;appsecret&amp;quot;, appsecret);
+        map.put(&amp;quot;timestamp&amp;quot;, timestamp);
+        map.put(&amp;quot;nonce&amp;quot;, nonce);
+
+        StringBuilder sb = new StringBuilder();
+        Iterator&amp;lt;String&amp;gt; iterator = map.keySet().iterator();
+        while (iterator.hasNext()) &amp;#123;
+            String key = iterator.next();
+            String value = map.get(key);
+            sb.append(key).append(&amp;quot;=&amp;quot;).append(value).append(&amp;quot;&amp;amp;&amp;quot;);
+        &amp;#125;
+        if (sb.length() &amp;gt;= 1) &amp;#123;
+            sb = sb.deleteCharAt(sb.length() - 1);
+        &amp;#125;
+
+        try &amp;#123;
+            return DigestUtils.md5Hex(sb.toString().getBytes(&amp;quot;utf-8&amp;quot;));
+        &amp;#125; catch (UnsupportedEncodingException e) &amp;#123;
+            throw new RuntimeException(e);
+        &amp;#125;
+    &amp;#125;
+
+    public static String generateSign(TreeMap&amp;lt;String, String&amp;gt; map, String appsecret) &amp;#123;
+        String sign = null;
+        try &amp;#123;
+            String data = getParamStringData(map) + &amp;quot;&amp;amp;key=&amp;quot; + appsecret;
+            sign = DigestUtils.md5Hex(data.getBytes(&amp;quot;utf-8&amp;quot;));
+        &amp;#125; catch (UnsupportedEncodingException e) &amp;#123;
+            throw new RuntimeException(e.getMessage(), e);
+        &amp;#125;
+        return sign;
+    &amp;#125;
+
+    public static String generateSign(Object obj, String appsecret) &amp;#123;
+        Field[] fields = obj.getClass().getDeclaredFields();
+        TreeMap&amp;lt;String, String&amp;gt; map = new TreeMap&amp;lt;&amp;gt;();
+        for(Field field : fields) &amp;#123;
+            field.setAccessible(true);
+            if(&amp;quot;sign&amp;quot;.equalsIgnoreCase(field.getName())) &amp;#123;
+                continue;
+            &amp;#125;
+            Object value = null;
+            try &amp;#123;
+                value = field.get(obj);
+            &amp;#125; catch (IllegalAccessException e) &amp;#123;
+                throw new RuntimeException(e.getMessage(), e);
+            &amp;#125;
+            if(value == null) &amp;#123;
+                continue;
+            &amp;#125;
+            String strValue = value.toString();
+            if(StringUtils.isBlank(strValue)) &amp;#123;
+                continue;
+            &amp;#125;
+            map.put(field.getName(), strValue);
+        &amp;#125;
+
+        String sign = null;
+        try &amp;#123;
+            String data = getParamStringData(map) + &amp;quot;&amp;amp;key=&amp;quot; + appsecret;
+            sign = DigestUtils.md5Hex(data.getBytes(&amp;quot;utf-8&amp;quot;));
+        &amp;#125; catch (UnsupportedEncodingException e) &amp;#123;
+            throw new RuntimeException(e.getMessage(), e);
+        &amp;#125;
+        return sign;
+    &amp;#125;
+
+    public static void main(String[] args) throws UnsupportedEncodingException &amp;#123;
+//        String data = &amp;quot;param=123&amp;quot;;
+//        System.out.println(DigestUtils.md5(data.getBytes(&amp;quot;utf-8&amp;quot;)));
+        long time = System.currentTimeMillis();
+        System.out.println(time);
+        String sign = generateSign(&amp;quot;omsk3&amp;quot;, &amp;quot;w8sdmweooxsdds2332sd&amp;quot;, &amp;quot;&amp;quot;+time, &amp;quot;&amp;quot;+time);
+        System.out.println(sign);//2d9954d5e4d2983254047b4fb2a9a9dc
+    &amp;#125;
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;定义全局过滤器&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#定义全局过滤器&#34;&gt;#&lt;/a&gt; 定义全局过滤器&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Slf4j
+@Component
+//注意filter顺序，不能太高，这里有前置代码的
+public class SignatureCheckFilter implements Filter &amp;#123;
+   
+    @Autowired
+    private IRestApiAuthService authService;
+
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException &amp;#123;
+    &amp;#125;
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &amp;#123;
+   //TODO:这里做参数校验
+   
+   &amp;#125;
+   
+    @Override
+    public void destroy() &amp;#123;
+    &amp;#125;
+    
+    &amp;#125;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;全局签名校验&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#全局签名校验&#34;&gt;#&lt;/a&gt; 全局签名校验&lt;/h3&gt;
+&lt;p&gt;在全局拦截其中，需要对所有的对外服务的接口做签名校验，签名校验方法如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &amp;#123;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+       
+        String appkey = request.getHeader(&amp;quot;Appkey&amp;quot;);
+        String timestamp = request.getHeader(&amp;quot;Timestamp&amp;quot;);
+        String nonce = request.getHeader(&amp;quot;Nonce&amp;quot;);
+        String signature = request.getHeader(&amp;quot;Signature&amp;quot;);
+
+        TreeMap&amp;lt;String, String&amp;gt; params = new TreeMap&amp;lt;String, String&amp;gt;();
+        if (StringUtils.isBlank(appkey)) &amp;#123;
+            responseInvalidParam(response, &amp;quot;appkey must not be empty&amp;quot;);
+            return;
+        &amp;#125;
+        RestApiAuth apiAuth = authService.getRestApiAuthByAppkey(appkey);
+        if (apiAuth == null) &amp;#123;
+            responseInvalidParam(response, &amp;quot;invalid param&amp;quot;);
+            return;
+        &amp;#125;
+        params.put(&amp;quot;appkey&amp;quot;, appkey);
+        params.put(&amp;quot;appsecret&amp;quot;, apiAuth.getAppsecret());
+        params.put(&amp;quot;timestamp&amp;quot;, timestamp);
+        params.put(&amp;quot;nonce&amp;quot;, nonce);
+        // 校验必填参数
+        if (!validateParam(response, appkey, timestamp, nonce, signature)) &amp;#123;
+            return;
+        &amp;#125;
+
+        boolean pass = SignUtil.verifySignature(signature, params);
+        if (pass) &amp;#123;
+            //封装线程数据
+            RestApiVo restApiVo = new RestApiVo();
+            //app key
+            restApiVo.setAppkey(appkey);
+            //来源渠道编号：系统设置-渠道入口管理
+            restApiVo.setChannelCode(apiAuth.getChannelCode());
+            restApiVo.setChannelId(apiAuth.getChannelId());
+            restApiVo.setChannelName(com.middle.platform.core.util.StringUtils.getValueByAny(apiAuth.getChannelName(), apiAuth.getRemark(), apiAuth.getChannelCode(), apiAuth.getAppkey(), &amp;quot;外部系统创建&amp;quot;));
+            //请求url,带get参数
+            restApiVo.setParam(request.getQueryString());
+            //请求参数集合(post部分)
+            restApiVo.setBody((String) SessionDataUtil.get(SDenums.postBody));
+            //请求header，json
+            JSONObject hearJson = new JSONObject();
+            Map&amp;lt;String, String&amp;gt; map = Maps.newHashMap();
+            Enumeration headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) &amp;#123;
+                String key = (String) headerNames.nextElement();
+                hearJson.put(key, request.getHeader(key));
+                map.put(key, request.getHeader(key));
+            &amp;#125;
+            restApiVo.setHeaders(hearJson.toJSONString());
+            //请求链路参数
+            restApiVo.setSno(MDC.get(CommonConstant.LOG_TRACE_ID));
+            //用户登录信息
+            restApiVo.setBmpIUserDd(request.getHeader(HeaderConstant.BMP_BPLOG_USER_ID));
+            if (GENERAL_CHANNEL_CODE_SET.contains(restApiVo.getChannelCode())) &amp;#123;
+                restApiVo.setBmpIRestUserType(BpUserTypeEnum.GENERAL_MEMBER.getCode());
+            &amp;#125;
+            if (StringUtils.isBlank(restApiVo.getBmpIRestUserType())) &amp;#123;
+                restApiVo.setBmpIRestUserType(request.getHeader(HeaderConstant.BMP_BPLOG_USER_TYPE));
+            &amp;#125;
+            restApiVo.setHeadersMap(map);
+            SessionGatewayCurrent.set(restApiVo);
+
+            filterChain.doFilter(request, response);
+        &amp;#125; else &amp;#123;
+            log.error(&amp;quot;check signature fail&amp;quot;);
+            writeResponse(response, null, ResponseCode.E401, &amp;quot;signature not match.&amp;quot;, Boolean.FALSE);
+            return;
+        &amp;#125;
+    &amp;#125;
+
+    @Override
+    public void destroy() &amp;#123;
+    &amp;#125;
+
+    private boolean validateParam(HttpServletResponse response, String appkey, String timestamp, String nonce, String signature) throws IOException &amp;#123;
+        if (StringUtils.isBlank(nonce)) &amp;#123;
+            responseInvalidParam(response, &amp;quot;nonce must not be empty&amp;quot;);
+            return false;
+        &amp;#125;
+
+        if (nonce.length() &amp;lt; 10) &amp;#123;
+            responseInvalidParam(response, &amp;quot;nonce长度不能少于10&amp;quot;);
+            return false;
+        &amp;#125;
+
+        if (StringUtils.isBlank(timestamp)) &amp;#123;
+            responseInvalidParam(response, &amp;quot;timestamp must not be empty&amp;quot;);
+            return false;
+        &amp;#125;
+
+        if (StringUtils.isBlank(signature)) &amp;#123;
+            responseInvalidParam(response, &amp;quot;signature must not be empty&amp;quot;);
+            return false;
+        &amp;#125;
+
+        // 判断请求时间是否在15分钟内
+        long time = Long.valueOf(timestamp);
+        DateTime date = new DateTime(time);
+//        log.info(&amp;quot;GateWay 接口调用时间戳:&amp;#123;&amp;#125;&amp;quot;, time);
+//        log.info(&amp;quot;GateWay 接口调用时间:&amp;#123;&amp;#125;&amp;quot;, date);
+//        log.info(&amp;quot;GateWay 服务器时间:&amp;#123;&amp;#125;&amp;quot;, DateTime.now());
+        // TODO pm给产品用，不校验时间戳有效性，便于测试，上线后删除这个appkey
+        if (!&amp;quot;pm&amp;quot;.equalsIgnoreCase(appkey)) &amp;#123;
+            if (DateTime.now().minusMinutes(15).isAfter(date) || DateTime.now().plusMinutes(15).isBefore(date)) &amp;#123;
+                responseInvalidParam(response, &amp;quot;invalid timestamp&amp;quot;);
+                return false;
+            &amp;#125;
+
+            // 预防重放攻击
+            String key = &amp;quot;rest_api_auth:&amp;quot; + appkey + &amp;quot;:&amp;quot; + nonce;
+            if (RedisUtil.exists(key)) &amp;#123;
+                responseInvalidParam(response, &amp;quot;none repeated&amp;quot;);
+                return false;
+            &amp;#125; else &amp;#123;
+                // 缓存30分钟
+                RedisUtil.set(key, Byte.valueOf(&amp;quot;1&amp;quot;), 30 * 60L);
+            &amp;#125;
+        &amp;#125;
+
+        return Boolean.TRUE;
+    &amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+ ]]></description>
+        </item>
         <item>
             <guid isPermalink="true">http://blog.huanlee.cn/computer-science/blog/hello-world/</guid>
             <title>Hello World</title>

@@ -1,0 +1,311 @@
+<!-- build time:Sat Dec 05 2020 18:37:08 GMT+0800 (GMT+08:00) --><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=2"><meta name="theme-color" content="#FFF"><link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png"><link rel="icon" type="image/ico" sizes="32x32" href="/images/favicon.ico"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="alternate" type="application/rss+xml" title="Lee" href="http://blog.huanlee.cn/rss.xml"><link rel="alternate" type="application/atom+xml" title="Lee" href="http://blog.huanlee.cn/atom.xml"><link rel="alternate" type="application/json" title="Lee" href="http://blog.huanlee.cn/feed.json"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Mulish:300,300italic,400,400italic,700,700italic%7CFredericka%20the%20Great:300,300italic,400,400italic,700,700italic%7CNoto%20Serif%20JP:300,300italic,400,400italic,700,700italic%7CNoto%20Serif%20SC:300,300italic,400,400italic,700,700italic%7CInconsolata:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext"><link rel="stylesheet" href="/css/app.css?v=0.1.6"><meta name="description" content="见习码农"><link rel="canonical" href="http://blog.huanlee.cn/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/"><title>SpringBoot网关对外接口签名 - Java - 计算机科学 | Lee = Lee = 生活笔记</title><meta name="generator" content="Hexo 5.1.1"></head><body itemscope itemtype="http://schema.org/WebPage"><div id="loading"><div class="cat"><div class="body"></div><div class="head"><div class="face"></div></div><div class="foot"><div class="tummy-end"></div><div class="bottom"></div><div class="legs left"></div><div class="legs right"></div></div><div class="paw"><div class="hands left"></div><div class="hands right"></div></div></div></div><div id="container"><header id="header" itemscope itemtype="http://schema.org/WPHeader"><div class="inner"><div id="brand"><div class="pjax"><h1 itemprop="name headline">SpringBoot网关对外接口签名</h1><div class="meta"><span class="item" title="创建时间：2020-12-05 17:24:40"><span class="icon"><i class="ic i-calendar"></i> </span><span class="text">发表于</span> <time itemprop="dateCreated datePublished" datetime="2020-12-05T17:24:40+08:00">2020-12-05</time> </span><span class="item" title="本文字数"><span class="icon"><i class="ic i-pen"></i> </span><span class="text">本文字数</span> <span>9.6k</span> <span class="text">字</span> </span><span class="item" title="阅读时长"><span class="icon"><i class="ic i-clock"></i> </span><span class="text">阅读时长</span> <span>9 分钟</span></span></div></div></div><nav id="nav"><div class="inner"><div class="toggle"><div class="lines" aria-label="切换导航栏"><span class="line"></span> <span class="line"></span> <span class="line"></span></div></div><ul class="menu"><li class="item title"><a href="/" rel="start">Lee</a></li></ul><ul class="right"><li class="item theme"><i class="ic i-sun"></i></li><li class="item search"><i class="ic i-search"></i></li></ul></div></nav></div><div id="imgs" class="pjax"><ul><li class="item" data-background-image="https://tva3.sinaimg.cn/large/6833939bly1gicitzannuj20zk0m8b29.jpg"></li><li class="item" data-background-image="https://tva3.sinaimg.cn/large/6833939bly1giclwuom7cj20zk0m8dvn.jpg"></li><li class="item" data-background-image="https://tva3.sinaimg.cn/large/6833939bly1giciusoyjnj219g0u0x56.jpg"></li><li class="item" data-background-image="https://tva3.sinaimg.cn/large/6833939bly1gicitht3xtj20zk0m8k5v.jpg"></li><li class="item" data-background-image="https://tva3.sinaimg.cn/large/6833939bly1giclhpw3lwj20zk0m8gvw.jpg"></li><li class="item" data-background-image="https://tva3.sinaimg.cn/large/6833939bly1gipey0a334j20zk0m8qpt.jpg"></li></ul></div></header><div id="waves"><svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto"><defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs><g class="parallax"><use xlink:href="#gentle-wave" x="48" y="0"/><use xlink:href="#gentle-wave" x="48" y="3"/><use xlink:href="#gentle-wave" x="48" y="5"/><use xlink:href="#gentle-wave" x="48" y="7"/></g></svg></div><main id="main"><div class="inner"><div id="content" class="pjax"><div class="article wrap"><div class="breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList"><i class="ic i-home"></i> <span><a href="/">首页</a></span> <i class="ic i-angle-right"></i> <span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a href="/categories/computer-science/" itemprop="item" rel="index" title="分类于 计算机科学"><span itemprop="name">计算机科学</span></a><meta itemprop="position" content="1"></span><i class="ic i-angle-right"></i> <span class="current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a href="/categories/computer-science/java/" itemprop="item" rel="index" title="分类于 Java"><span itemprop="name">Java</span></a><meta itemprop="position" content="2"></span></div><article itemscope itemtype="http://schema.org/Article" class="post block" lang="zh-CN"><link itemprop="mainEntityOfPage" href="http://blog.huanlee.cn/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="image" content="/images/avatar.jpg"><meta itemprop="name" content="Lee"><meta itemprop="description" content="生活笔记, 见习码农"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="Lee"></span><div class="body md" itemprop="articleBody"><div class="note info"><p>在需要提供对外接口时，通过一系列验证方式保证安全性</p></div><h1 id="接口签名的作用"><a class="anchor" href="#接口签名的作用">#</a> 接口签名的作用</h1><pre><code>当我们产品在遇到需要提供对外接口的情况，我们想要保证接口的安全性，既能够保证数据的安全，又能防止被人暴力破坏，我们可以选择在对外接口上增加验证方式，来保证对外接口的安全性。
+</code></pre><h1 id="接口签名的思路"><a class="anchor" href="#接口签名的思路">#</a> 接口签名的思路</h1><pre><code>传统对内接口，我们的验证方式为：对用户身份信息进行验证，（即：cookie中包含服务端sessionID或Token令牌），那么对于公开的对外接口，我们也可以用大致相同的思路，首先接口调用方，需要获取我们平台颁发给他的`appKey`和`appSecret`（可以理解为：用户名和密码），然后为了防止直接使用密钥传输会被抓包窃取数据，那么我们需要规定一种双方都能通过密钥得出的对称加密方式，这样只需要每次在接口上传递加密后的密码串，就能保证安全性。
+</code></pre><h1 id="接口签名的代码实现"><a class="anchor" href="#接口签名的代码实现">#</a> 接口签名的代码实现</h1><h2 id="首先我们需要一个存储用户信息的表"><a class="anchor" href="#首先我们需要一个存储用户信息的表">#</a> 首先我们需要一个存储用户信息的表</h2><pre><code class="language-java">public class RestApiAuth implements Serializable &#123;
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * app key
+     */
+    private String appkey;
+
+    /**
+     * app secret
+     */
+    private String appsecret;
+
+    private Date createTime;
+
+    private Date updateTime;
+    /**
+     * 是否启用(1:是 0:否)
+     */
+    private Integer enabled;
+    /**
+     * 备注
+     */
+    private String remark;
+&#125;
+</code></pre><h2 id="对外接口用户信息增删查改"><a class="anchor" href="#对外接口用户信息增删查改">#</a> 对外接口用户信息增删查改</h2><pre><code class="language-java">public interface IRestApiAuthService extends IService&lt;RestApiAuth&gt; &#123;
+
+    public RestApiAuth getRestApiAuthByAppkey(String appkey);
+&#125;
+
+@Service
+public class RestApiAuthServiceImpl extends ServiceImpl&lt;RestApiAuthMapper, RestApiAuth&gt; implements IRestApiAuthService &#123;
+
+    @Override
+    public RestApiAuth getRestApiAuthByAppkey(String appkey) &#123;
+        QueryWrapper&lt;RestApiAuth&gt; wrapper = new QueryWrapper&lt;RestApiAuth&gt;()
+                .eq(&quot;appkey&quot;, appkey);
+        return super.getOne(wrapper);
+    &#125;
+&#125;
+</code></pre><h2 id="加密签名规则"><a class="anchor" href="#加密签名规则">#</a> 加密签名规则</h2><pre><code>那么我们需要规定，在所有对外接口中，需要在http请求的头部信息中包含签名验证参数。我们定义4个必传参数为：
+</code></pre><ol><li>appkey：颁发给用户的 appKey</li><li>noncestr：随机字符串</li><li>timestamp：发起请求时间秒数</li><li>sign：参数内容签名结果，不参与签名。但需要发送给接口</li></ol><h3 id="并且提供签名的工具类供调用方使用"><a class="anchor" href="#并且提供签名的工具类供调用方使用">#</a> 并且提供签名的工具类，供调用方使用：</h3><pre><code class="language-java">import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.util.Iterator;
+import java.util.TreeMap;
+public class SignUtil &#123;
+
+    public static boolean verifySignature(String signature, TreeMap&lt;String, String&gt; map) &#123;
+        if (map == null || StringUtils.isEmpty(signature)) &#123;
+            return false;
+        &#125;
+        String data = getParamStringData(map);
+        String paramsSign = null;
+        try &#123;
+            paramsSign = DigestUtils.md5Hex(data.getBytes(&quot;utf-8&quot;));
+//            log.info(&quot;-----------------》调用前日志签名&quot;+paramsSign);
+        &#125; catch (UnsupportedEncodingException e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+        return StringUtils.isNotBlank(paramsSign) &amp;&amp; paramsSign.equals(signature);
+    &#125;
+
+    public static String getParamStringData(TreeMap&lt;String, String&gt; map) &#123;
+        StringBuilder sb = new StringBuilder();
+        Iterator&lt;String&gt; iterator = map.keySet().iterator();
+        while (iterator.hasNext()) &#123;
+            String key = iterator.next();
+            String value = map.get(key);
+            sb.append(key).append(&quot;=&quot;).append(value).append(&quot;&amp;&quot;);
+        &#125;
+        if (sb.length() &gt;= 1) &#123;
+            sb = sb.deleteCharAt(sb.length() - 1);
+        &#125;
+        return sb.toString();
+    &#125;
+
+    public static String generateSign(String appkey, String appsecret, String timestamp, String nonce) &#123;
+        TreeMap&lt;String, String&gt; map = new TreeMap&lt;&gt;();
+        map.put(&quot;appkey&quot;, appkey);
+        map.put(&quot;appsecret&quot;, appsecret);
+        map.put(&quot;timestamp&quot;, timestamp);
+        map.put(&quot;nonce&quot;, nonce);
+
+        StringBuilder sb = new StringBuilder();
+        Iterator&lt;String&gt; iterator = map.keySet().iterator();
+        while (iterator.hasNext()) &#123;
+            String key = iterator.next();
+            String value = map.get(key);
+            sb.append(key).append(&quot;=&quot;).append(value).append(&quot;&amp;&quot;);
+        &#125;
+        if (sb.length() &gt;= 1) &#123;
+            sb = sb.deleteCharAt(sb.length() - 1);
+        &#125;
+
+        try &#123;
+            return DigestUtils.md5Hex(sb.toString().getBytes(&quot;utf-8&quot;));
+        &#125; catch (UnsupportedEncodingException e) &#123;
+            throw new RuntimeException(e);
+        &#125;
+    &#125;
+
+    public static String generateSign(TreeMap&lt;String, String&gt; map, String appsecret) &#123;
+        String sign = null;
+        try &#123;
+            String data = getParamStringData(map) + &quot;&amp;key=&quot; + appsecret;
+            sign = DigestUtils.md5Hex(data.getBytes(&quot;utf-8&quot;));
+        &#125; catch (UnsupportedEncodingException e) &#123;
+            throw new RuntimeException(e.getMessage(), e);
+        &#125;
+        return sign;
+    &#125;
+
+    public static String generateSign(Object obj, String appsecret) &#123;
+        Field[] fields = obj.getClass().getDeclaredFields();
+        TreeMap&lt;String, String&gt; map = new TreeMap&lt;&gt;();
+        for(Field field : fields) &#123;
+            field.setAccessible(true);
+            if(&quot;sign&quot;.equalsIgnoreCase(field.getName())) &#123;
+                continue;
+            &#125;
+            Object value = null;
+            try &#123;
+                value = field.get(obj);
+            &#125; catch (IllegalAccessException e) &#123;
+                throw new RuntimeException(e.getMessage(), e);
+            &#125;
+            if(value == null) &#123;
+                continue;
+            &#125;
+            String strValue = value.toString();
+            if(StringUtils.isBlank(strValue)) &#123;
+                continue;
+            &#125;
+            map.put(field.getName(), strValue);
+        &#125;
+
+        String sign = null;
+        try &#123;
+            String data = getParamStringData(map) + &quot;&amp;key=&quot; + appsecret;
+            sign = DigestUtils.md5Hex(data.getBytes(&quot;utf-8&quot;));
+        &#125; catch (UnsupportedEncodingException e) &#123;
+            throw new RuntimeException(e.getMessage(), e);
+        &#125;
+        return sign;
+    &#125;
+
+    public static void main(String[] args) throws UnsupportedEncodingException &#123;
+//        String data = &quot;param=123&quot;;
+//        System.out.println(DigestUtils.md5(data.getBytes(&quot;utf-8&quot;)));
+        long time = System.currentTimeMillis();
+        System.out.println(time);
+        String sign = generateSign(&quot;omsk3&quot;, &quot;w8sdmweooxsdds2332sd&quot;, &quot;&quot;+time, &quot;&quot;+time);
+        System.out.println(sign);//2d9954d5e4d2983254047b4fb2a9a9dc
+    &#125;
+&#125;
+</code></pre><h2 id="定义全局过滤器"><a class="anchor" href="#定义全局过滤器">#</a> 定义全局过滤器</h2><pre><code class="language-java">@Slf4j
+@Component
+//注意filter顺序，不能太高，这里有前置代码的
+public class SignatureCheckFilter implements Filter &#123;
+   
+    @Autowired
+    private IRestApiAuthService authService;
+
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException &#123;
+    &#125;
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;
+   //TODO:这里做参数校验
+   
+   &#125;
+   
+    @Override
+    public void destroy() &#123;
+    &#125;
+    
+    &#125;
+
+</code></pre><h3 id="全局签名校验"><a class="anchor" href="#全局签名校验">#</a> 全局签名校验</h3><p>在全局拦截其中，需要对所有的对外服务的接口做签名校验，签名校验方法如下：</p><pre><code class="language-java">public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException &#123;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+       
+        String appkey = request.getHeader(&quot;Appkey&quot;);
+        String timestamp = request.getHeader(&quot;Timestamp&quot;);
+        String nonce = request.getHeader(&quot;Nonce&quot;);
+        String signature = request.getHeader(&quot;Signature&quot;);
+
+        TreeMap&lt;String, String&gt; params = new TreeMap&lt;String, String&gt;();
+        if (StringUtils.isBlank(appkey)) &#123;
+            responseInvalidParam(response, &quot;appkey must not be empty&quot;);
+            return;
+        &#125;
+        RestApiAuth apiAuth = authService.getRestApiAuthByAppkey(appkey);
+        if (apiAuth == null) &#123;
+            responseInvalidParam(response, &quot;invalid param&quot;);
+            return;
+        &#125;
+        params.put(&quot;appkey&quot;, appkey);
+        params.put(&quot;appsecret&quot;, apiAuth.getAppsecret());
+        params.put(&quot;timestamp&quot;, timestamp);
+        params.put(&quot;nonce&quot;, nonce);
+        // 校验必填参数
+        if (!validateParam(response, appkey, timestamp, nonce, signature)) &#123;
+            return;
+        &#125;
+
+        boolean pass = SignUtil.verifySignature(signature, params);
+        if (pass) &#123;
+            //封装线程数据
+            RestApiVo restApiVo = new RestApiVo();
+            //app key
+            restApiVo.setAppkey(appkey);
+            //来源渠道编号：系统设置-渠道入口管理
+            restApiVo.setChannelCode(apiAuth.getChannelCode());
+            restApiVo.setChannelId(apiAuth.getChannelId());
+            restApiVo.setChannelName(com.middle.platform.core.util.StringUtils.getValueByAny(apiAuth.getChannelName(), apiAuth.getRemark(), apiAuth.getChannelCode(), apiAuth.getAppkey(), &quot;外部系统创建&quot;));
+            //请求url,带get参数
+            restApiVo.setParam(request.getQueryString());
+            //请求参数集合(post部分)
+            restApiVo.setBody((String) SessionDataUtil.get(SDenums.postBody));
+            //请求header，json
+            JSONObject hearJson = new JSONObject();
+            Map&lt;String, String&gt; map = Maps.newHashMap();
+            Enumeration headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) &#123;
+                String key = (String) headerNames.nextElement();
+                hearJson.put(key, request.getHeader(key));
+                map.put(key, request.getHeader(key));
+            &#125;
+            restApiVo.setHeaders(hearJson.toJSONString());
+            //请求链路参数
+            restApiVo.setSno(MDC.get(CommonConstant.LOG_TRACE_ID));
+            //用户登录信息
+            restApiVo.setBmpIUserDd(request.getHeader(HeaderConstant.BMP_BPLOG_USER_ID));
+            if (GENERAL_CHANNEL_CODE_SET.contains(restApiVo.getChannelCode())) &#123;
+                restApiVo.setBmpIRestUserType(BpUserTypeEnum.GENERAL_MEMBER.getCode());
+            &#125;
+            if (StringUtils.isBlank(restApiVo.getBmpIRestUserType())) &#123;
+                restApiVo.setBmpIRestUserType(request.getHeader(HeaderConstant.BMP_BPLOG_USER_TYPE));
+            &#125;
+            restApiVo.setHeadersMap(map);
+            SessionGatewayCurrent.set(restApiVo);
+
+            filterChain.doFilter(request, response);
+        &#125; else &#123;
+            log.error(&quot;check signature fail&quot;);
+            writeResponse(response, null, ResponseCode.E401, &quot;signature not match.&quot;, Boolean.FALSE);
+            return;
+        &#125;
+    &#125;
+
+    @Override
+    public void destroy() &#123;
+    &#125;
+
+    private boolean validateParam(HttpServletResponse response, String appkey, String timestamp, String nonce, String signature) throws IOException &#123;
+        if (StringUtils.isBlank(nonce)) &#123;
+            responseInvalidParam(response, &quot;nonce must not be empty&quot;);
+            return false;
+        &#125;
+
+        if (nonce.length() &lt; 10) &#123;
+            responseInvalidParam(response, &quot;nonce长度不能少于10&quot;);
+            return false;
+        &#125;
+
+        if (StringUtils.isBlank(timestamp)) &#123;
+            responseInvalidParam(response, &quot;timestamp must not be empty&quot;);
+            return false;
+        &#125;
+
+        if (StringUtils.isBlank(signature)) &#123;
+            responseInvalidParam(response, &quot;signature must not be empty&quot;);
+            return false;
+        &#125;
+
+        // 判断请求时间是否在15分钟内
+        long time = Long.valueOf(timestamp);
+        DateTime date = new DateTime(time);
+//        log.info(&quot;GateWay 接口调用时间戳:&#123;&#125;&quot;, time);
+//        log.info(&quot;GateWay 接口调用时间:&#123;&#125;&quot;, date);
+//        log.info(&quot;GateWay 服务器时间:&#123;&#125;&quot;, DateTime.now());
+        // TODO pm给产品用，不校验时间戳有效性，便于测试，上线后删除这个appkey
+        if (!&quot;pm&quot;.equalsIgnoreCase(appkey)) &#123;
+            if (DateTime.now().minusMinutes(15).isAfter(date) || DateTime.now().plusMinutes(15).isBefore(date)) &#123;
+                responseInvalidParam(response, &quot;invalid timestamp&quot;);
+                return false;
+            &#125;
+
+            // 预防重放攻击
+            String key = &quot;rest_api_auth:&quot; + appkey + &quot;:&quot; + nonce;
+            if (RedisUtil.exists(key)) &#123;
+                responseInvalidParam(response, &quot;none repeated&quot;);
+                return false;
+            &#125; else &#123;
+                // 缓存30分钟
+                RedisUtil.set(key, Byte.valueOf(&quot;1&quot;), 30 * 60L);
+            &#125;
+        &#125;
+
+        return Boolean.TRUE;
+    &#125;
+</code></pre></div><footer><div class="meta"><span class="item"><span class="icon"><i class="ic i-calendar-check"></i> </span><span class="text">更新于</span> <time title="修改时间：2020-12-05 18:36:14" itemprop="dateModified" datetime="2020-12-05T18:36:14+08:00">2020-12-05</time></span></div><div id="copyright"><ul><li class="author"><strong>本文作者： </strong>Lee <i class="ic i-at"><em>@</em></i>Lee</li><li class="link"><strong>本文链接：</strong> <a href="http://blog.huanlee.cn/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/" title="SpringBoot网关对外接口签名">http://blog.huanlee.cn/computer-science/java/SpringBoot网关对外接口签名/</a></li><li class="license"><strong>版权声明： </strong>本站所有文章除特别声明外，均采用 <span class="exturl" data-url="aHR0cHM6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LW5jLXNhLzQuMC9kZWVkLnpo"><i class="ic i-creative-commons"><em>(CC)</em></i>BY-NC-SA</span> 许可协议。转载请注明出处！</li></ul></div></footer></article></div><div class="nav"><div class="item left"><a href="/computer-science/blog/hello-world/" itemprop="url" rel="prev" data-background-image="https:&#x2F;&#x2F;tva3.sinaimg.cn&#x2F;mw690&#x2F;6833939bly1giclwuom7cj20zk0m8dvn.jpg" title="Hello World"><span class="type">上一篇</span> <span class="category"><i class="ic i-flag"></i> 个人博客</span><h3>Hello World</h3></a></div><div class="item right"></div></div><div class="wrap" id="comments" data-id="computer-science/java/SpringBoot网关对外接口签名/"></div></div><div id="sidebar"><div class="inner"><div class="panels"><div class="inner"><div class="contents panel pjax" data-title="文章目录"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.</span> <span class="toc-text">接口签名的作用</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="toc-number">2.</span> <span class="toc-text">接口签名的思路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D%E7%9A%84%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">接口签名的代码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A6%96%E5%85%88%E6%88%91%E4%BB%AC%E9%9C%80%E8%A6%81%E4%B8%80%E4%B8%AA%E5%AD%98%E5%82%A8%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%E7%9A%84%E8%A1%A8"><span class="toc-number">3.1.</span> <span class="toc-text">首先我们需要一个存储用户信息的表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%E5%A2%9E%E5%88%A0%E6%9F%A5%E6%94%B9"><span class="toc-number">3.2.</span> <span class="toc-text">对外接口用户信息增删查改</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E5%AF%86%E7%AD%BE%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">3.3.</span> <span class="toc-text">加密签名规则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E4%B8%94%E6%8F%90%E4%BE%9B%E7%AD%BE%E5%90%8D%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB%E4%BE%9B%E8%B0%83%E7%94%A8%E6%96%B9%E4%BD%BF%E7%94%A8"><span class="toc-number">3.3.1.</span> <span class="toc-text">并且提供签名的工具类，供调用方使用：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E5%85%A8%E5%B1%80%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-number">3.4.</span> <span class="toc-text">定义全局过滤器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E7%AD%BE%E5%90%8D%E6%A0%A1%E9%AA%8C"><span class="toc-number">3.4.1.</span> <span class="toc-text">全局签名校验</span></a></li></ol></li></ol></li></ol></div><div class="related panel pjax" data-title="系列文章"><ul><li><a href="/computer-science/java/ParallelStream%E5%B9%B6%E8%A1%8C%E6%B5%81%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" rel="bookmark" title="ParallelStream并行流使用注意事项">ParallelStream并行流使用注意事项</a></li><li class="active"><a href="/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/" rel="bookmark" title="SpringBoot网关对外接口签名">SpringBoot网关对外接口签名</a></li></ul></div><div class="overview panel" data-title="站点概览"><div class="author" itemprop="author" itemscope itemtype="http://schema.org/Person"><img class="image" itemprop="image" alt="Lee" data-src="/images/avatar.jpg"><p class="name" itemprop="name">Lee</p><div class="description" itemprop="description">见习码农</div></div><nav class="state"><div class="item posts"><a href="/archives/"><span class="count">5</span> <span class="name">文章</span></a></div><div class="item categories"><a href="/categories/"><span class="count">4</span> <span class="name">分类</span></a></div></nav><div class="social"><span class="exturl item github" data-url="aHR0cHM6Ly9naXRodWIuY29tL0dpdEh1YW5MZWU=" title="https:&#x2F;&#x2F;github.com&#x2F;GitHuanLee"><i class="ic i-github"></i></span> <span class="exturl item zhihu" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3Blb3BsZS9qaW5nLXNoZW4teWktY2hhbmctNQ==" title="https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;jing-shen-yi-chang-5"><i class="ic i-zhihu"></i></span> <span class="exturl item music" data-url="aHR0cHM6Ly9tdXNpYy4xNjMuY29tLyMvdXNlci9ob21lP2lkPTExNjA4Mzc1Ng==" title="https:&#x2F;&#x2F;music.163.com&#x2F;#&#x2F;user&#x2F;home?id&#x3D;116083756"><i class="ic i-cloud-music"></i></span> <span class="exturl item email" data-url="bWFpbHRvOmxpaHVhbjM1MTBAcXEuY29t" title="mailto:lihuan3510@qq.com"><i class="ic i-envelope"></i></span></div><ul class="menu"><li class="item"><a href="/" rel="section"><i class="ic i-home"></i>首页</a></li><li class="item dropdown"><a href="javascript:void(0);"><i class="ic i-feather"></i>文章</a><ul class="submenu"><li class="item"><a href="/archives/" rel="section"><i class="ic i-list-alt"></i>归档</a></li><li class="item"><a href="/categories/" rel="section"><i class="ic i-th"></i>分类</a></li><li class="item"><a href="/tags/" rel="section"><i class="ic i-tags"></i>标签</a></li></ul></li><li class="item"><a href="/about/" rel="section"><i class="ic i-user"></i>关于</a></li></ul></div></div></div><ul id="quick"><li class="prev pjax"></li><li class="up"><i class="ic i-arrow-up"></i></li><li class="down"><i class="ic i-arrow-down"></i></li><li class="next pjax"></li><li class="percent"></li></ul></div></div><div class="dimmer"></div></div></main><footer id="footer"><div class="inner"><div class="copyright">&copy; 2010 – <span itemprop="copyrightYear">2020</span> <span class="with-love"><i class="ic i-sakura rotate"></i> </span><span class="author" itemprop="copyrightHolder">Lee @ Lee</span></div><div><span class="post-meta-item-icon"><i class="ic i-chart-area"></i> </span><span title="站点总字数">17k 字</span> <span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="ic i-coffee"></i> </span><span title="站点阅读时长">16 分钟</span></div><div class="powered-by">基于 <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & Theme.<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2FtZWhpbWUvaGV4by10aGVtZS1zaG9rYQ==">Shoka</span></div></div></footer></div><script data-config type="text/javascript">var LOCAL={path:"http://blog.huanlee.cn/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/",favicon:{show:"（●´3｀●）やれやれだぜ",hide:"(´Д｀)大変だ！"},search:{placeholder:"文章搜索",empty:"关于 ${query} ，什么也没搜到",stats:"${time} ms 内找到 ${hits} 条结果"},valine:!0,copyright:'复制成功，转载请遵守 <i class="ic i-creative-commons"></i>BY-NC-SA 协议。',ignores:[function(e){return e.includes("#")},function(e){return e===LOCAL.path}]}</script><script src="//cdn.jsdelivr.net/combine/npm/pace-js@1.0.2/pace.min.js,npm/pjax@0.2.8/pjax.min.js,npm/whatwg-fetch@3.4.0/dist/fetch.umd.min.js,npm/velocity-animate@1.5.2/velocity.min.js,npm/velocity-animate@1.5.2/velocity.ui.min.js,npm/algoliasearch@4/dist/algoliasearch-lite.umd.js,npm/instantsearch.js@4/dist/instantsearch.production.min.js,npm/lozad@1/dist/lozad.min.js,npm/quicklink@2/dist/quicklink.umd.js"></script><script src="/js/app.js?v=0.1.6"></script></body></html><!-- rebuild by hrmmi -->
