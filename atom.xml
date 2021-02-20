@@ -8,12 +8,490 @@
     <author>
       <name>Lee</name>
     </author>
-    <updated>2020-12-05T09:24:40.000Z</updated>
+    <updated>2021-02-20T09:24:40.000Z</updated>
     <category term="JAVA" />
     <category term="Lee" />
     <category term="Java" />
     <category term="Spring Boot" />
     <category term="Spring" />
+    <entry>
+        <id>http://blog.huanlee.cn/computer-science/java/SpringBoot%E4%BA%8B%E7%89%A9%E4%BC%A0%E6%92%AD%E6%9C%BA%E5%88%B6/</id>
+        <title>SpringBoot事物传播机制</title>
+        <link rel="alternate" href="http://blog.huanlee.cn/computer-science/java/SpringBoot%E4%BA%8B%E7%89%A9%E4%BC%A0%E6%92%AD%E6%9C%BA%E5%88%B6/"/>
+        <content type="html">&lt;div class=&#34;note info&#34;&gt;
+&lt;p&gt;在实际项目中，调用外部接口时，提供了一个记录日志的功能，但是无论外部接口是否调用成功，调用失败会抛出异常，都想记录下调用日志和返回结果，而延伸出的一些列思考。&lt;/p&gt;
+&lt;/div&gt;
+&lt;h1 id=&#34;spring-boot-transaction&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#spring-boot-transaction&#34;&gt;#&lt;/a&gt; Spring Boot Transaction&lt;/h1&gt;
+&lt;h2 id=&#34;事物管理方式&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事物管理方式&#34;&gt;#&lt;/a&gt; 事物管理方式&lt;/h2&gt;
+&lt;p&gt;在 Spring 中，事务有两种实现方式，分别是编程式事务管理和声明式事务管理两种方式。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;编程式事务管理： 编程式事务管理使用 TransactionTemplate 或者直接使用底层的 PlatformTransactionManager。对于编程式事务管理，spring 推荐使用 TransactionTemplate。&lt;/li&gt;
+&lt;li&gt;声明式事务管理： 建立在 AOP 之上的。其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。&lt;br /&gt;
+声明式事务管理不需要入侵代码，通过 @Transactional 就可以进行事务操作，更快捷而且简单，推荐使用。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;事务提交方式&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事务提交方式&#34;&gt;#&lt;/a&gt; 事务提交方式&lt;/h2&gt;
+&lt;p&gt;默认情况下，数据库处于自动提交模式。每一条语句处于一个单独的事务中，在这条语句执行完毕时，如果执行成功则隐式的提交事务，如果执行失败则隐式的回滚事务。&lt;br /&gt;
+对于正常的事务管理，是一组相关的操作处于一个事务之中，因此必须关闭数据库的自动提交模式。不过，这个我们不用担心，spring 会将底层连接的自动提交特性设置为 false。也就是在使用 spring 进行事物管理的时候，spring 会将是否自动提交设置为 false，等价于 JDBC 中的  &lt;code&gt;connection.setAutoCommit(false);&lt;/code&gt; ，在执行完之后在进行提交， &lt;code&gt;connection.commit();&lt;/code&gt;  。&lt;/p&gt;
+&lt;h2 id=&#34;事务隔离级别&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事务隔离级别&#34;&gt;#&lt;/a&gt; 事务隔离级别&lt;/h2&gt;
+&lt;p&gt;隔离级别是指若干个并发的事务之间的隔离程度。TransactionDefinition 接口中定义了五个表示隔离级别的常量：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;TransactionDefinition.ISOLATION_DEFAULT：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是 TransactionDefinition.ISOLATION_READ_COMMITTED。&lt;/li&gt;
+&lt;li&gt;TransactionDefinition.ISOLATION_READ_UNCOMMITTED：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读，不可重复读和幻读，因此很少使用该隔离级别。比如 PostgreSQL 实际上并没有此级别。&lt;/li&gt;
+&lt;li&gt;TransactionDefinition.ISOLATION_READ_COMMITTED：该隔离级别表示一个事务只能读取另一个事务已经提交的数据。该级别可以防止脏读，这也是大多数情况下的推荐值。&lt;/li&gt;
+&lt;li&gt;TransactionDefinition.ISOLATION_REPEATABLE_READ：该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。该级别可以防止脏读和不可重复读。&lt;/li&gt;
+&lt;li&gt;TransactionDefinition.ISOLATION_SERIALIZABLE：所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;事务回滚规则&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事务回滚规则&#34;&gt;#&lt;/a&gt; 事务回滚规则&lt;/h2&gt;
+&lt;p&gt;指示 spring 事务管理器回滚一个事务的推荐方法是在当前事务的上下文内抛出异常。spring 事务管理器会捕捉任何未处理的异常，然后依据规则决定是否回滚抛出异常的事务。&lt;br /&gt;
+默认配置下，spring 只有在抛出的异常为运行时 unchecked 异常时才回滚该事务，也就是抛出的异常为 RuntimeException 的子类 (Errors 也会导致事务回滚)，而抛出 checked 异常则不会导致事务回滚。&lt;br /&gt;
+可以明确的配置在抛出那些异常时回滚事务，包括 checked 异常。也可以明确定义那些异常抛出时不回滚事务。&lt;/p&gt;
+&lt;h2 id=&#34;事务常用配置&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事务常用配置&#34;&gt;#&lt;/a&gt; 事务常用配置&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;readOnly：该属性用于设置当前事务是否为只读事务，设置为 true 表示只读，false 则表示可读写，默认值为 false。例如：@Transactional (readOnly=true)；&lt;/li&gt;
+&lt;li&gt;rollbackFor： 该属性用于设置需要进行回滚的异常类数组，当方法中抛出指定异常数组中的异常时，则进行事务回滚。例如：指定单一异常类：@Transactional (rollbackFor=RuntimeException.class) 指定多个异常类：@Transactional (rollbackFor={RuntimeException.class, Exception.class})；&lt;/li&gt;
+&lt;li&gt;rollbackForClassName： 该属性用于设置需要进行回滚的异常类名称数组，当方法中抛出指定异常名称数组中的异常时，则进行事务回滚。例如：指定单一异常类名称 @Transactional (rollbackForClassName=”RuntimeException”) 指定多个异常类名称：@Transactional (rollbackForClassName={“RuntimeException”,”Exception”})。&lt;/li&gt;
+&lt;li&gt;noRollbackFor：该属性用于设置不需要进行回滚的异常类数组，当方法中抛出指定异常数组中的异常时，不进行事务回滚。例如：指定单一异常类：@Transactional (noRollbackFor=RuntimeException.class) 指定多个异常类：@Transactional (noRollbackFor={RuntimeException.class, Exception.class})。&lt;/li&gt;
+&lt;li&gt;noRollbackForClassName：该属性用于设置不需要进行回滚的异常类名称数组，当方法中抛出指定异常名称数组中的异常时，不进行事务回滚。例如：指定单一异常类名称：@Transactional (noRollbackForClassName=”RuntimeException”) 指定多个异常类名称：@Transactional (noRollbackForClassName={“RuntimeException”,”Exception”})。&lt;/li&gt;
+&lt;li&gt;propagation ： 该属性用于设置事务的传播行为。例如：@Transactional (propagation=Propagation.NOT_SUPPORTED,readOnly=true)。&lt;/li&gt;
+&lt;li&gt;isolation：该属性用于设置底层数据库的事务隔离级别，事务隔离级别用于处理多事务并发的情况，通常使用数据库的默认隔离级别即可，基本不需要进行设置。&lt;/li&gt;
+&lt;li&gt;timeout：该属性用于设置事务的超时秒数，默认值为 - 1 表示永不超时。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;事物注意事项&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事物注意事项&#34;&gt;#&lt;/a&gt; 事物注意事项&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;要根据实际的需求来决定是否要使用事物，最好是在编码之前就考虑好，不然到以后就难以维护；&lt;/li&gt;
+&lt;li&gt;如果使用了事物，请务必进行事物测试，因为很多情况下以为事物是生效的，但是实际上可能未生效！&lt;/li&gt;
+&lt;li&gt;事物 @Transactional 的使用要放再类的公共 (public) 方法中，需要注意的是在 protected、private 方法上使用 @Transactional 注解，它也不会报错 (IDEA 会有提示)，但事务无效。&lt;/li&gt;
+&lt;li&gt;事物 @Transactional 是不会对该方法里面的子方法生效！也就是你在公共方法 A 声明的事物 @Transactional，但是在 A 方法中有个子方法 B 和 C，其中方法 B 进行了数据操作，但是该异常被 B 自己处理了，这样的话事物是不会生效的！反之 B 方法声明的事物 @Transactional，但是公共方法 A 却未声明事物的话，也是不会生效的！如果想事物生效，需要将子方法的事务控制交给调用的方法，在子方法中使用 rollbackFor 注解指定需要回滚的异常或者将异常抛出交给调用的方法处理。一句话就是在使用事物的异常由调用者进行处理！&lt;/li&gt;
+&lt;li&gt;事物 @Transactional 由 spring 控制的时候，它会在抛出异常的时候进行回滚。如果自己使用 catch 捕获了处理了，是不生效的，如果想生效可以进行手动回滚或者在 catch 里面将异常抛出，比如 &lt;code&gt;throw new RuntimeException();&lt;/code&gt; 。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&#34;事务传播行为&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事务传播行为&#34;&gt;#&lt;/a&gt; 事务传播行为&lt;/h1&gt;
+&lt;h2 id=&#34;required&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#required&#34;&gt;#&lt;/a&gt; REQUIRED&lt;/h2&gt;
+&lt;p&gt;也是默认的传递属性，其特点在于：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如果存在一个事务，则在当前事务中运行，&lt;/li&gt;
+&lt;li&gt;如果没有事务则开启一个新的事务。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;使用方式也比较简单，不设置 @Transactional 注解的 propagation 属性，或者设置为 REQUIRED 即可&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;/**
+ * 如果存在一个事务，则支持当前事务。如果没有事务则开启一个新的事务
+ *
+ * @param id
+ */
+@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+public void required(int id) throws Exception &amp;#123;
+    if (this.updateName(id)) &amp;#123;
+        this.query(&amp;quot;required: after updateMoney name&amp;quot;, id);
+        if (this.updateMoney(id)) &amp;#123;
+            return;
+        &amp;#125;
+    &amp;#125;
+
+    throw new Exception(&amp;quot;事务回滚!!!&amp;quot;);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;上面就是一个基础的使用姿势&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private void testRequired() &amp;#123;
+    int id = 420;
+    call(&amp;quot;Required事务运行&amp;quot;, id, propagationDemo::required);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出结果如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;============ Required事务运行 start ========== 
+Required事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=420, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+required: after updateMoney name &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=420, name=更新, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+事务回滚!!!
+Required事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=420, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+============ Required事务运行 end ========== 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;supports&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#supports&#34;&gt;#&lt;/a&gt; SUPPORTS&lt;/h2&gt;
+&lt;p&gt;其特点是在事务里面，就事务执行；否则就非事务执行，即&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如果存在一个事务，支持当前事务&lt;/li&gt;
+&lt;li&gt;如果没有事务，则非事务的执行&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;使用姿势和前面基本一致&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(propagation = Propagation.SUPPORTS, rollbackFor = Exception.class)
+public void support(int id) throws Exception &amp;#123;
+    if (this.updateName(id)) &amp;#123;
+        this.query(&amp;quot;support: after updateMoney name&amp;quot;, id);
+        if (this.updateMoney(id)) &amp;#123;
+            return;
+        &amp;#125;
+    &amp;#125;
+
+    throw new Exception(&amp;quot;事务回滚!!!&amp;quot;);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这个传递属性比较特别，所以我们的测试 case 需要两个，一个事务调用，一个非事务调用&lt;/p&gt;
+&lt;p&gt;测试事务调用时，我们新建一个 bean: PropagationDemo2，下面的 support 方法支持事务运行&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Component
+public class PropagationDemo2 &amp;#123;
+    @Autowired
+    private PropagationDemo propagationDemo;
+
+    @Transactional(rollbackFor = Exception.class)
+    public void support(int id) throws Exception &amp;#123;
+        // 事务运行
+        propagationDemo.support(id);
+    &amp;#125;
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;对于非事务调用，则是直接在测试类中调用 (请注意下面的 call 方法，调用的是两个不同 bean 中的 support 方法)&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private void testSupport() &amp;#123;
+    int id = 430;
+    // 非事务方式，异常不会回滚
+    call(&amp;quot;support无事务运行&amp;quot;, id, propagationDemo::support);
+
+    // 事务运行
+    id = 440;
+    call(&amp;quot;support事务运行&amp;quot;, id, propagationDemo2::support);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出结果如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;============ support无事务运行 start ========== 
+support无事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=430, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+support: after updateMoney name &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=430, name=更新, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+事务回滚!!!
+support无事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=430, name=更新, money=210, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+============ support无事务运行 end ========== 
+
+============ support事务运行 start ========== 
+support事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=440, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+support: after updateMoney name &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=440, name=更新, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+事务回滚!!!
+support事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=440, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+============ support事务运行 end ========== 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从上面的输出，也可以得出结果：非事务执行时，不会回滚；事务执行时，回滚&lt;/p&gt;
+&lt;h2 id=&#34;mandatory&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#mandatory&#34;&gt;#&lt;/a&gt; MANDATORY&lt;/h2&gt;
+&lt;p&gt;需要在一个正常的事务内执行，否则抛异常&lt;/p&gt;
+&lt;p&gt;使用姿势如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(propagation = Propagation.MANDATORY, rollbackFor = Exception.class)
+public void mandatory(int id) throws Exception &amp;#123;
+    if (this.updateName(id)) &amp;#123;
+        this.query(&amp;quot;mandatory: after updateMoney name&amp;quot;, id);
+        if (this.updateMoney(id)) &amp;#123;
+            return;
+        &amp;#125;
+    &amp;#125;
+
+    throw new Exception(&amp;quot;事务回滚!!!&amp;quot;);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这种传播属性的特点是这个方法必须在一个已有的事务中运行，所以我们的测试 case 也比较简单，不再事务中运行时会怎样？&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private void testMandatory() &amp;#123;
+    int id = 450;
+    // 非事务方式，抛异常，这个必须在一个事务内部执行
+    call(&amp;quot;mandatory非事务运行&amp;quot;, id, propagationDemo::mandatory);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出结果&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;============ mandatory非事务运行 start ========== 
+mandatory非事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=450, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+No existing transaction found for transaction marked with propagation &#39;mandatory&#39;
+mandatory非事务运行 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=450, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+============ mandatory非事务运行 end ========== 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从上面的输出可知，直接抛出了异常，并不会执行方法内的逻辑&lt;/p&gt;
+&lt;h2 id=&#34;not_support&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#not_support&#34;&gt;#&lt;/a&gt; NOT_SUPPORT&lt;/h2&gt;
+&lt;p&gt;这个比较有意思，被它标记的方法，总是非事务地执行，如果存在活动事务，则挂起&lt;/p&gt;
+&lt;p&gt;（实在是没有想到，有什么场景需要这种传播属性）&lt;/p&gt;
+&lt;p&gt;一个简单的使用 case 如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(propagation = Propagation.NOT_SUPPORTED, rollbackFor = Exception.class)
+public void notSupport(int id) throws Exception &amp;#123;
+    if (this.updateName(id)) &amp;#123;
+        this.query(&amp;quot;notSupport: after updateMoney name&amp;quot;, id);
+        if (this.updateMoney(id)) &amp;#123;
+            return;
+        &amp;#125;
+    &amp;#125;
+    throw new Exception(&amp;quot;回滚!&amp;quot;);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;接下来需要好好的想一下我们的测试用例，首先是它需要在一个事务中调用，外部事物失败回滚，并不会影响上面这个方法的执行结果&lt;/p&gt;
+&lt;p&gt;我们在 PropagationDemo2 中，添加测试 case 如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(rollbackFor = Exception.class)
+public void notSupport(int id) throws Exception &amp;#123;
+    // 挂起当前事务，以非事务方式运行
+    try &amp;#123;
+        propagationDemo.notSupport(id);
+    &amp;#125; catch (Exception e) &amp;#123;
+    &amp;#125;
+
+    propagationDemo.query(&amp;quot;notSupportCall: &amp;quot;, id);
+    propagationDemo.updateName(id, &amp;quot;外部更新&amp;quot;);
+    propagationDemo.query(&amp;quot;notSupportCall: &amp;quot;, id);
+    throw new Exception(&amp;quot;回滚&amp;quot;);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出结果如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;============ notSupport start ========== 
+notSupport &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=460, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+notSupport: after updateMoney name &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=460, name=更新, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+notSupportCall:  &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=460, name=更新, money=210, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+notSupportCall:  &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=460, name=外部更新, money=210, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+回滚
+notSupport &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=460, name=更新, money=210, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+============ notSupport end ========== 
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从上面输出可以看出&lt;/p&gt;
+&lt;p&gt;NOT_SUPPORT 标记的方法，属于非事务运行（因为抛异常，修改没有回滚）&lt;br /&gt;
+外部事务回滚，不会影响其修改&lt;/p&gt;
+&lt;h2 id=&#34;never&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#never&#34;&gt;#&lt;/a&gt; NEVER&lt;/h2&gt;
+&lt;p&gt;总是非事务地执行，如果存在一个活动事务，则抛出异常。&lt;/p&gt;
+&lt;p&gt;使用姿势如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;/**
+ * 总是非事务地执行，如果存在一个活动事务，则抛出异常。
+ *
+ * @param id
+ * @throws Exception
+ */
+@Transactional(propagation = Propagation.NEVER, rollbackFor = Exception.class)
+public void never(int id) throws Exception &amp;#123;
+    if (this.updateName(id)) &amp;#123;
+        this.query(&amp;quot;notSupport: after updateMoney name&amp;quot;, id);
+        if (this.updateMoney(id)) &amp;#123;
+            return;
+        &amp;#125;
+    &amp;#125;
+&amp;#125;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;我们的测试就比较简单了，如果在事务中运行，是不是会抛异常&lt;/p&gt;
+&lt;p&gt;在 PropagationDemo2 中，添加一个事务调用方法&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(rollbackFor = Exception.class)
+public void never(int id) throws Exception &amp;#123;
+    propagationDemo.never(id);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;测试代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private void testNever() &amp;#123;
+    int id = 470;
+    call(&amp;quot;never非事务&amp;quot;, id, propagationDemo2::never);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出结果&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;============ never非事务 start ========== 
+never非事务 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=470, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+Existing transaction found for transaction marked with propagation &#39;never&#39;
+never非事务 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=470, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+============ never非事务 end ==========
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;直接抛出了异常，并没有执行方法内的业务逻辑&lt;/p&gt;
+&lt;h2 id=&#34;nested&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#nested&#34;&gt;#&lt;/a&gt; NESTED&lt;/h2&gt;
+&lt;p&gt;其主要特点如下&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如果不存在事务，则开启一个事务运行&lt;/li&gt;
+&lt;li&gt;如果存在事务，则运行一个嵌套事务；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;上面提出了一个嵌套事务的概念，什么是嵌套事务呢？&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;一个简单的理解：外部事务回滚，内部事务也会被回滚；内部事务回滚，外部无问题，并不会回滚外部事务&lt;br /&gt;
+接下来设计两个测试用例，一个是内部事务回滚；一个是外部事务回滚&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ol&gt;
+&lt;li&gt;case1 内部事务&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+public void nested(int id) throws Exception &amp;#123;
+    if (this.updateName(id)) &amp;#123;
+        this.query(&amp;quot;nested: after updateMoney name&amp;quot;, id);
+        if (this.updateMoney(id)) &amp;#123;
+            return;
+        &amp;#125;
+    &amp;#125;
+
+    throw new Exception(&amp;quot;事务回滚!!!&amp;quot;);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在 PropagationDemo2 这个 bean 中，添加一个外部事务，捕获上面方法的异常，因此外部执行正常&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(rollbackFor = Exception.class)
+public void nested(int id) throws Exception &amp;#123;
+    propagationDemo.updateName(id, &amp;quot;外部事务修改&amp;quot;);
+    propagationDemo.query(&amp;quot;nestedCall: &amp;quot;, id);
+    try &amp;#123;
+        propagationDemo.nested(id);
+    &amp;#125; catch (Exception e) &amp;#123;
+    &amp;#125;
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;测试代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private void testNested() &amp;#123;
+    int id = 480;
+    call(&amp;quot;nested事务&amp;quot;, id, propagationDemo2::nested);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出结果如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;============ nested事务 start ========== 
+nested事务 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=480, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+nestedCall:  &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=480, name=外部事务修改, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+nested: after updateMoney name &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=480, name=更新, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+nested事务 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=480, name=外部事务修改, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+============ nested事务 end ==========
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;仔细看一下上面的结果，外部事务修改的结果都被保存了，内部事务的修改被回滚了，没有影响最终的结果&lt;/p&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;case2 外部事务回滚&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+public void nested2(int id) throws Exception &amp;#123;
+    if (this.updateName(id)) &amp;#123;
+        this.query(&amp;quot;nested: after updateMoney name&amp;quot;, id);
+        if (this.updateMoney(id)) &amp;#123;
+            return;
+        &amp;#125;
+    &amp;#125;
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在 PropagationDemo2 这个 bean 中，添加一个外部事务，内部事务正常，但是外部事务抛异常，主动回滚&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Transactional(rollbackFor = Exception.class)
+public void nested2(int id) throws Exception &amp;#123;
+    // 嵌套事务，外部回滚，会同步回滚内部事务
+    propagationDemo.updateName(id, &amp;quot;外部事务修改&amp;quot;);
+    propagationDemo.query(&amp;quot;nestedCall: &amp;quot;, id);
+    propagationDemo.nested2(id);
+    throw new Exception(&amp;quot;事务回滚&amp;quot;);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;测试代码&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private void testNested() &amp;#123;
+    int id = 490;
+    call(&amp;quot;nested事务2&amp;quot;, id, propagationDemo2::nested2);
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;事输出结果如下&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;============ nested事务2 start ========== 
+nested事务2 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=490, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+nestedCall:  &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=490, name=外部事务修改, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+nested: after updateMoney name &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=490, name=更新, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:46.0&amp;#125;
+事务回滚
+nested事务2 &amp;gt;&amp;gt;&amp;gt;&amp;gt; &amp;#123;id=490, name=初始化, money=200, is_deleted=false, create_at=2020-02-02 15:23:26.0, update_at=2020-02-02 15:23:26.0&amp;#125;
+============ nested事务2 end ========== 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;仔细看上面的输出，对别 case1，其特别在于全部回滚了，内部事务的修改也被回滚了&lt;/p&gt;
+&lt;h2 id=&#34;requires_new&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#requires_new&#34;&gt;#&lt;/a&gt; REQUIRES_NEW&lt;/h2&gt;
+&lt;p&gt;这个和上面的 NESTED 有点相似，但是又不一样&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;当存在活动事务时，新创建一个事务执行&lt;/li&gt;
+&lt;li&gt;当不存在活动事务时，和 REQUIRES 效果一致，创建一个事务执行&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;### 注意&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;REQUIRES_NEW&lt;/code&gt;  和 &lt;code&gt;NESTED&lt;/code&gt;  相比，两个事务之间没有关系，任何一个回滚，对另外一个无影响&lt;/p&gt;
+&lt;p&gt;测试 case 和前面差不多，不多做细说...&lt;/p&gt;
+&lt;p&gt;## 小结&lt;br /&gt;
+前面介绍了 7 中传播属性，下面简单对比和小结一下&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;事务&lt;/th&gt;
+&lt;th&gt;特点&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;REQUIRED&lt;/td&gt;
+&lt;td&gt;默认，如果存在事务，则支持当前事务；不存在，则开启一个新事务&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;SUPPORTS&lt;/td&gt;
+&lt;td&gt;如果存在一个事务，支持当前事务。如果没有事务，则非事务的执行&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MANDATORY&lt;/td&gt;
+&lt;td&gt;需要在一个正常的事务内执行，否则抛异常&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;REQUIRES_NEW&lt;/td&gt;
+&lt;td&gt;不管存不存在事务，都开启一个新事务&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;NOT_SUPPORTED&lt;/td&gt;
+&lt;td&gt;不管存不存在，都以非事务方式执行，当存在事务时，挂起事务&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;NEVER&lt;/td&gt;
+&lt;td&gt;非事务方式执行，如果存在事务，则抛异常&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;NESTED&lt;/td&gt;
+&lt;td&gt;如果不存在事务，则开启一个事务运行；如果存在事务，则运行一个嵌套事务&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h1 id=&#34;事物方法之间的调用&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#事物方法之间的调用&#34;&gt;#&lt;/a&gt; 事物方法之间的调用&lt;/h1&gt;
+&lt;h2 id=&#34;同类方法调用&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#同类方法调用&#34;&gt;#&lt;/a&gt; 同类方法调用&lt;/h2&gt;
+&lt;p&gt;示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; @Transactional(rollbackFor = Exception.class)
+    public void save2(User user)&amp;#123;
+        this.save(user);
+        throw new RuntimeException(&amp;quot;异常&amp;quot;);
+    &amp;#125;
+
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void save(User user)&amp;#123;
+        userMapper.insert(user);
+    &amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;当调用 &lt;code&gt;save2()&lt;/code&gt;  时，数据库中并不会保存数据。&lt;/p&gt;
+&lt;h2 id=&#34;不同类方法调用&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#不同类方法调用&#34;&gt;#&lt;/a&gt; 不同类方法调用&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt; @Service
+public class TestService &amp;#123;
+
+  @Autowired
+  UserService userService;
+
+  @Transactional(rollbackFor = Exception.class)
+  public void test()&amp;#123;
+    User user = new User();
+    user.setUserName(&amp;quot;赵四&amp;quot;);
+    user.setPassWord(&amp;quot;123456&amp;quot;);
+    user.setRealName(&amp;quot;赵四&amp;quot;);
+    userService.save2(user);
+
+    throw new RuntimeException(&amp;quot;异常回滚&amp;quot;);
+
+  &amp;#125;
+
+&amp;#125;
+
+@Service
+public class UserService &amp;#123;
+    @Autowired
+    UserMapper userMapper;
+    public User Sel(int id)&amp;#123;
+        return userMapper.Sel(id);
+    &amp;#125;
+    @Transactional(rollbackFor = Exception.class)
+    public void save2(User user)&amp;#123;
+        this.save(user);
+    &amp;#125;
+
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void save(User user)&amp;#123;
+        userMapper.insert(user);
+    &amp;#125;
+&amp;#125;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;当调用 &lt;code&gt;test()&lt;/code&gt;  方法时，数据也不会保存到数据库中。&lt;/p&gt;
+&lt;h2 id=&#34;结论总结&#34;&gt;&lt;a class=&#34;anchor&#34; href=&#34;#结论总结&#34;&gt;#&lt;/a&gt; 结论总结&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;mark&gt;同一个类的方法调用&lt;/mark&gt;，外围方法和内围方法其中一个有事务注解或者两者都有注解，则注解给外部方法，内部方法则看成外部方法的一部分，只要外部方法感受不到异常 (内外方法都未抛异常、内部抛出但内部或外部捕获、外部抛出外部捕获) 都不会回滚，只要外部方法感受到异常 (内部或外部抛出，但未捕获)，内外方法都会回滚。同一个类的方法调用，如果两者都没有事务注解，则没有事务，此时，无论如何都不可能存在回滚的情况。&lt;/li&gt;
+&lt;li&gt;&lt;mark&gt;不同类的方法调用&lt;/mark&gt;，外部方法调用不同类的内部方法，外部方法有事务时，分为两种情况：1、内部方法无事务。此时之只要把内部方法看成外部方法的一部分就可以了。只要外部方法感受不到异常（内外都不抛异常、内抛内捕获、内抛外捕获、外抛外捕获），就不会回滚。只要感受到异常就会回滚（内抛或外抛，但均不捕获）。2、内部方法有事务，则内部方法共用同一事物，与内部方法没有事务的区别是，内部方法有事务只要内部方法感受到异常，就会回滚，并且导致外部方法也回滚，即使外部方法捕获了内部方法抛出的异常。&lt;/li&gt;
+&lt;li&gt;&lt;mark&gt;当内部方法需要不同的传播机制时&lt;/mark&gt;，无论是通过 &lt;code&gt;this.方法&lt;/code&gt; 或者直接调用 &lt;code&gt;方法&lt;/code&gt; 的方式，都不会触发内部方法的事务管理，可以通过以下两种解决方式解决：
+&lt;ul&gt;
+&lt;li&gt;拆分成两个类，改为外部调用外部的形式。&lt;/li&gt;
+&lt;li&gt;通过 SpringBean 注入当前 Bean，通过 &lt;code&gt;Bean.方法&lt;/code&gt; 的形式调用内部方法。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+</content>
+        <category term="计算机科学" scheme="http://blog.huanlee.cn/categories/computer-science/" />
+        <category term="Java" scheme="http://blog.huanlee.cn/categories/computer-science/java/" />
+        <updated>2021-02-20T09:24:40.000Z</updated>
+    </entry>
     <entry>
         <id>http://blog.huanlee.cn/computer-science/java/SpringBoot%E7%BD%91%E5%85%B3%E5%AF%B9%E5%A4%96%E6%8E%A5%E5%8F%A3%E7%AD%BE%E5%90%8D/</id>
         <title>SpringBoot网关对外接口签名</title>
